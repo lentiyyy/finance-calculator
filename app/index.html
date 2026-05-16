@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор личных финансов</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>Калькулятор личных финансов</h1>
+            <p class="subtitle">Учёт доходов и расходов</p>
+        </header>
+
+        <section class="summary" aria-label="Сводка">
+            <div class="summary-card summary-card--income">
+                <span class="summary-label">Доходы</span>
+                <span class="summary-value" id="totalIncome">0,00 ₽</span>
+            </div>
+            <div class="summary-card summary-card--expense">
+                <span class="summary-label">Расходы</span>
+                <span class="summary-value" id="totalExpense">0,00 ₽</span>
+            </div>
+            <div class="summary-card summary-card--balance">
+                <span class="summary-label">Баланс</span>
+                <span class="summary-value" id="balance">0,00 ₽</span>
+            </div>
+        </section>
+
+        <section class="panel form-panel">
+            <h2 id="formTitle">Новая транзакция</h2>
+            <form id="transactionForm" class="transaction-form" novalidate>
+                <div class="form-row">
+                    <label class="form-field">
+                        <span>Тип</span>
+                        <select name="type" id="type" required>
+                            <option value="expense">Расход</option>
+                            <option value="income">Доход</option>
+                        </select>
+                    </label>
+
+                    <label class="form-field">
+                        <span>Сумма (₽)</span>
+                        <input type="number" name="amount" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+
+                    <label class="form-field">
+                        <span id="categoryLabel">Категория расхода</span>
+                        <select name="category" id="category" required>
+                            <option value="Еда">Еда</option>
+                            <option value="Транспорт">Транспорт</option>
+                            <option value="Жильё">Жильё</option>
+                            <option value="Развлечения">Развлечения</option>
+                            <option value="Здоровье">Здоровье</option>
+                            <option value="Другие">Другие</option>
+                        </select>
+                    </label>
+
+                    <label class="form-field">
+                        <span>Дата</span>
+                        <input type="date" name="date" id="date" required>
+                    </label>
+                </div>
+
+                <label class="form-field form-field--full">
+                    <span>Комментарий (необязательно)</span>
+                    <input type="text" name="comment" id="comment" maxlength="120" placeholder="Например: продукты на неделю">
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary" id="submitTransaction">Добавить</button>
+                    <button type="button" class="btn btn--secondary" id="cancelEdit" hidden>Отменить редактирование</button>
+                    <button type="reset" class="btn btn--ghost">Очистить</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel data-panel">
+            <h2>Данные</h2>
+            <div class="data-actions" aria-label="Операции с данными">
+                <button type="button" class="btn btn--secondary" id="loadDemoData">Загрузить демо-данные</button>
+                <button type="button" class="btn btn--ghost" id="exportCsv">Экспорт CSV</button>
+                <button type="button" class="btn btn--danger" id="clearData">Очистить все данные</button>
+            </div>
+        </section>
+
+        <section class="panel filters-panel">
+            <h2>Фильтры</h2>
+            <div class="filters">
+                <label class="form-field">
+                    <span>Период</span>
+                    <select id="filterPeriod">
+                        <option value="all">Всё время</option>
+                        <option value="week">Текущая неделя</option>
+                        <option value="month">Текущий месяц</option>
+                        <option value="custom">Произвольный</option>
+                    </select>
+                </label>
+
+                <label class="form-field" id="dateFromField" hidden>
+                    <span>С</span>
+                    <input type="date" id="filterDateFrom">
+                </label>
+
+                <label class="form-field" id="dateToField" hidden>
+                    <span>По</span>
+                    <input type="date" id="filterDateTo">
+                </label>
+
+                <label class="form-field">
+                    <span>Тип</span>
+                    <select id="filterType">
+                        <option value="all">Все</option>
+                        <option value="income">Доходы</option>
+                        <option value="expense">Расходы</option>
+                    </select>
+                </label>
+
+                <label class="form-field">
+                    <span>Категория</span>
+                    <select id="filterCategory">
+                        <option value="all">Все</option>
+                        <option value="Еда">Еда</option>
+                        <option value="Транспорт">Транспорт</option>
+                        <option value="Жильё">Жильё</option>
+                        <option value="Развлечения">Развлечения</option>
+                        <option value="Здоровье">Здоровье</option>
+                        <option value="Другие">Другие</option>
+                    </select>
+                </label>
+
+                <label class="form-field form-field--grow">
+                    <span>Поиск по комментарию</span>
+                    <input type="search" id="filterSearch" placeholder="Введите фрагмент">
+                </label>
+
+                <div class="filter-actions">
+                    <button type="button" class="btn btn--ghost" id="resetFilters">Сбросить</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel stats-panel">
+            <h2>Статистика и аналитика</h2>
+            <div id="statsContent" class="stats-content">
+                <p class="empty">Нет данных за выбранный период</p>
+            </div>
+        </section>
+
+        <section class="panel budget-panel">
+            <h2>Бюджеты расходов</h2>
+            <form id="budgetForm" class="budget-form">
+                <div id="budgetFields" class="budget-fields"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary">Сохранить бюджеты</button>
+                    <button type="button" class="btn btn--ghost" id="resetBudgets">Сбросить бюджеты</button>
+                </div>
+            </form>
+            <div id="budgetStatus" class="budget-status"></div>
+        </section>
+
+        <section class="panel transactions-panel">
+            <h2>Транзакции <span id="txCount" class="badge">0</span></h2>
+            <div class="table-wrapper">
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Тип</th>
+                            <th>Категория</th>
+                            <th class="num">Сумма</th>
+                            <th>Комментарий</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                    </tbody>
+                </table>
+                <p class="empty" id="emptyState">Транзакции отсутствуют. Добавьте первую запись через форму выше.</p>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <small>Курсовой проект · МДК.02.02 · Леонтьев М.Е. · 2026</small>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js?v=5"></script>
+</body>
+</html>
